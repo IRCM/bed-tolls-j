@@ -17,6 +17,7 @@
 
 package ca.qc.ircm.bedtools;
 
+import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
 import static ca.qc.ircm.bedtools.SetAnnotationsSizeCommand.SET_ANNOTATIONS_SIZE_COMMAND;
 import static org.junit.Assert.assertEquals;
@@ -41,19 +42,23 @@ public class MainServiceTest {
   private MainService mainService;
   @Mock
   private BedTransform bedTransform;
+  @Mock
+  private FastaConverter fastaConverter;
   @Captor
   private ArgumentCaptor<SetAnnotationsSizeCommand> setAnnotationsSizeCommandCaptor;
   @Captor
   private ArgumentCaptor<MoveAnnotationsCommand> moveAnnotationCommandCaptor;
+  @Captor
+  private ArgumentCaptor<FastaToSizesCommand> fastaToSizesCommandCaptor;
 
   @Before
   public void beforeTest() {
-    mainService = new MainService(bedTransform, true);
+    mainService = new MainService(bedTransform, fastaConverter, true);
   }
 
   @Test
   public void run_RunnerDisabled() {
-    mainService = new MainService(bedTransform, false);
+    mainService = new MainService(bedTransform, fastaConverter, false);
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1" });
     verifyZeroInteractions(bedTransform);
   }
@@ -195,6 +200,19 @@ public class MainServiceTest {
   public void run_MoveAnnotations_Help() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-h", "-d", "1" });
     verify(bedTransform, never()).moveAnnotations(any(), any(), any());
+  }
+
+  @Test
+  public void run_fastaToSizes() throws Throwable {
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND });
+    verify(fastaConverter).toSizes(eq(System.in), eq(System.out),
+        fastaToSizesCommandCaptor.capture());
+  }
+
+  @Test
+  public void run_fastaToSizes_Help() throws Throwable {
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-h" });
+    verify(fastaConverter, never()).toSizes(any(), any(), any());
   }
 
   @Test

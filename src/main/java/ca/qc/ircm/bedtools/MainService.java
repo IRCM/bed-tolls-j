@@ -17,6 +17,7 @@
 
 package ca.qc.ircm.bedtools;
 
+import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
 import static ca.qc.ircm.bedtools.SetAnnotationsSizeCommand.SET_ANNOTATIONS_SIZE_COMMAND;
 
@@ -38,14 +39,18 @@ public class MainService implements CommandLineRunner {
   private static Logger logger = LoggerFactory.getLogger(MainService.class);
   @Inject
   private BedTransform bedTransform;
+  @Inject
+  private FastaConverter fastaConverter;
   @Value("${spring.runner.enabled}")
   private boolean runnerEnabled;
 
   protected MainService() {
   }
 
-  protected MainService(BedTransform bedTransform, boolean runnerEnabled) {
+  protected MainService(BedTransform bedTransform, FastaConverter fastaConverter,
+      boolean runnerEnabled) {
     this.bedTransform = bedTransform;
+    this.fastaConverter = fastaConverter;
     this.runnerEnabled = runnerEnabled;
   }
 
@@ -64,8 +69,10 @@ public class MainService implements CommandLineRunner {
     MainCommand mainCommand = new MainCommand();
     SetAnnotationsSizeCommand setAnnotationSizeCommand = new SetAnnotationsSizeCommand();
     MoveAnnotationsCommand moveAnnotationsCommand = new MoveAnnotationsCommand();
-    JCommander command = JCommander.newBuilder().addObject(mainCommand)
-        .addCommand(setAnnotationSizeCommand).addCommand(moveAnnotationsCommand).build();
+    FastaToSizesCommand fastaToSizesCommand = new FastaToSizesCommand();
+    JCommander command =
+        JCommander.newBuilder().addObject(mainCommand).addCommand(setAnnotationSizeCommand)
+            .addCommand(moveAnnotationsCommand).addCommand(fastaToSizesCommand).build();
     command.setCaseSensitiveOptions(false);
     try {
       command.parse(args);
@@ -82,6 +89,12 @@ public class MainService implements CommandLineRunner {
           command.usage(MOVE_ANNOTATIONS_COMMAND);
         } else {
           moveAnnotations(moveAnnotationsCommand);
+        }
+      } else if (command.getParsedCommand().equals(FASTA_TO_SIZES_COMMAND)) {
+        if (fastaToSizesCommand.help) {
+          command.usage(FASTA_TO_SIZES_COMMAND);
+        } else {
+          fastaToSize(fastaToSizesCommand);
         }
       }
     } catch (ParameterException e) {
@@ -107,6 +120,17 @@ public class MainService implements CommandLineRunner {
       bedTransform.moveAnnotations(System.in, System.out, moveAnnotationsCommand);
     } catch (NumberFormatException e) {
       System.err.println("Could not parse annotation sizes");
+    } catch (IOException e) {
+      System.err.println("Could not read input or write to output");
+    }
+  }
+
+  private void fastaToSize(FastaToSizesCommand fastaToSizesCommand) {
+    logger.debug("Fasta 2 sizes");
+    try {
+      fastaConverter.toSizes(System.in, System.out, fastaToSizesCommand);
+    } catch (NumberFormatException e) {
+      System.err.println("Could not parse FASTA file");
     } catch (IOException e) {
       System.err.println("Could not read input or write to output");
     }

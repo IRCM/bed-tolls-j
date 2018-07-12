@@ -24,8 +24,8 @@
     <relativePath>../ircm-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bed-tools</artifactId>
-  <name>bed-tools</name>
+  <artifactId>bed-tools-j</artifactId>
+  <name>bed-tools-j</name>
   <version>2-SNAPSHOT</version>
   <inceptionYear>2017</inceptionYear>
   <description>Tools for BED files</description>

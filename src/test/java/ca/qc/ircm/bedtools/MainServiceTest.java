@@ -61,12 +61,14 @@ public class MainServiceTest {
     mainService = new MainService(bedTransform, fastaConverter, false);
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1" });
     verifyZeroInteractions(bedTransform);
+    verifyZeroInteractions(fastaConverter);
   }
 
   @Test
   public void run_Help() {
     mainService.run("-h");
     verifyZeroInteractions(bedTransform);
+    verifyZeroInteractions(fastaConverter);
   }
 
   @Test
@@ -219,5 +221,6 @@ public class MainServiceTest {
   public void run_Other() throws Throwable {
     mainService.run(new String[] { "other" });
     verifyZeroInteractions(bedTransform);
+    verifyZeroInteractions(fastaConverter);
   }
 }

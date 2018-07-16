@@ -17,7 +17,7 @@
 
 spring:
   application:
-    name: bed-tools
+    name: bed-tools-j
   main:
     banner-mode: 'off'
   runner:

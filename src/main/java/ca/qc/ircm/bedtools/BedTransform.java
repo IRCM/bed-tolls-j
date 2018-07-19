@@ -110,23 +110,16 @@ public class BedTransform {
   /**
    * Move annotations in BED file.
    *
-   * @param input
-   *          BED to trim
-   * @param output
-   *          output
    * @param parameters
    *          move parameters
    * @throws IOException
    *           could not read or write BED
    */
-  public void moveAnnotations(InputStream input, OutputStream output,
-      MoveAnnotationsCommand parameters) throws IOException {
+  public void moveAnnotations(MoveAnnotationsCommand parameters) throws IOException {
     Pattern browserPattern = Pattern.compile(BROWSER_PATTERN);
     Pattern trackPattern = Pattern.compile(TRACK_PATTERN);
-    try (
-        ChunkReader reader =
-            new ChunkReader(new BufferedReader(new InputStreamReader(input, BED_CHARSET)), 1000000);
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, BED_CHARSET))) {
+    try (ChunkReader reader = new ChunkReader(parameters.reader(), 1000000);
+        BufferedWriter writer = parameters.writer()) {
       List<String> chunk;
       while (!(chunk = reader.readChunk()).isEmpty()) {
         for (String line : chunk) {

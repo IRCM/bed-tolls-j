@@ -117,7 +117,7 @@ public class MainService implements CommandLineRunner {
   private void moveAnnotations(MoveAnnotationsCommand moveAnnotationsCommand) {
     logger.debug("Move annotations by {} bases", moveAnnotationsCommand.distance);
     try {
-      bedTransform.moveAnnotations(System.in, System.out, moveAnnotationsCommand);
+      bedTransform.moveAnnotations(moveAnnotationsCommand);
     } catch (NumberFormatException e) {
       System.err.println("Could not parse annotation sizes");
     } catch (IOException e) {

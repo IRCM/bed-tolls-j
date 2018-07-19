@@ -169,45 +169,99 @@ public class MainServiceTest {
   @Test
   public void run_MoveAnnotations() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "20" });
-    verify(bedTransform).moveAnnotations(eq(System.in), eq(System.out),
-        moveAnnotationCommandCaptor.capture());
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
   }
 
   @Test
   public void run_MoveAnnotations_LongName() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-distance", "20" });
-    verify(bedTransform).moveAnnotations(eq(System.in), eq(System.out),
-        moveAnnotationCommandCaptor.capture());
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
   }
 
   @Test
   public void run_MoveAnnotations_UpperCase() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND.toUpperCase(), "-d", "20" });
-    verify(bedTransform).moveAnnotations(eq(System.in), eq(System.out),
-        moveAnnotationCommandCaptor.capture());
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
   }
 
   @Test
   public void run_MoveAnnotations_InvalidSize() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "a" });
-    verify(bedTransform, never()).moveAnnotations(any(), any(), any());
+    verify(bedTransform, never()).moveAnnotations(any());
   }
 
   @Test
   public void run_MoveAnnotations_NegativeSize() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "-30" });
-    verify(bedTransform).moveAnnotations(eq(System.in), eq(System.out),
-        moveAnnotationCommandCaptor.capture());
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals((Integer) (-30), moveAnnotationCommandCaptor.getValue().distance);
+  }
+
+  @Test
+  public void run_MoveAnnotations_Input() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-i", input.toString(), "-d", "20" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals(input, moveAnnotationCommandCaptor.getValue().input);
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+  }
+
+  @Test
+  public void run_MoveAnnotations_InputLongName() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService
+        .run(new String[] { MOVE_ANNOTATIONS_COMMAND, "--input", input.toString(), "-d", "20" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals(input, moveAnnotationCommandCaptor.getValue().input);
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+  }
+
+  @Test
+  public void run_MoveAnnotations_InputNotExists() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-i", input.toString(), "-d", "20" });
+    verify(bedTransform, never()).moveAnnotations(any());
+  }
+
+  @Test
+  public void run_MoveAnnotations_Output() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-o", output.toString(), "-d", "20" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+  }
+
+  @Test
+  public void run_MoveAnnotations_OutputLongName() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService
+        .run(new String[] { MOVE_ANNOTATIONS_COMMAND, "--output", output.toString(), "-d", "20" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+  }
+
+  @Test
+  public void run_MoveAnnotations_OutputNotExists() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-o", output.toString(), "-d", "20" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
   }
 
   @Test
   public void run_MoveAnnotations_Help() throws Throwable {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-h", "-d", "1" });
-    verify(bedTransform, never()).moveAnnotations(any(), any(), any());
+    verify(bedTransform, never()).moveAnnotations(any());
   }
 
   @Test

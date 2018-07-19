@@ -20,12 +20,6 @@ package ca.qc.ircm.bedtools;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,24 +29,17 @@ import org.springframework.stereotype.Component;
 public class FastaConverter {
   private static final String LINE_SEPARATOR = "\n";
   private static final String SEPARATOR = "\t";
-  private static final Charset FASTA_CHARSET = StandardCharsets.UTF_8;
 
   /**
    * Converts FASTA file to sizes file.
    *
-   * @param input
-   *          FASTA to convert
-   * @param output
-   *          output
    * @param parameters
    *          parameters
    * @throws IOException
    *           could not read or write BED
    */
-  public void toSizes(InputStream input, OutputStream output, FastaToSizesCommand parameters)
-      throws IOException {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, FASTA_CHARSET));
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, FASTA_CHARSET))) {
+  public void toSizes(FastaToSizesCommand parameters) throws IOException {
+    try (BufferedReader reader = parameters.reader(); BufferedWriter writer = parameters.writer()) {
       String line;
       String chromosome = null;
       long size = 0;

@@ -28,8 +28,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 import ca.qc.ircm.bedtools.test.config.NonTransactionalTestAnnotations;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -50,6 +54,8 @@ public class MainServiceTest {
   private ArgumentCaptor<MoveAnnotationsCommand> moveAnnotationCommandCaptor;
   @Captor
   private ArgumentCaptor<FastaToSizesCommand> fastaToSizesCommandCaptor;
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void beforeTest() {
@@ -207,14 +213,64 @@ public class MainServiceTest {
   @Test
   public void run_fastaToSizes() throws Throwable {
     mainService.run(new String[] { FASTA_TO_SIZES_COMMAND });
-    verify(fastaConverter).toSizes(eq(System.in), eq(System.out),
-        fastaToSizesCommandCaptor.capture());
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+  }
+
+  @Test
+  public void run_fastaToSizes_Input() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-i", input.toString() });
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+    assertEquals(input, fastaToSizesCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_fastaToSizes_InputLongName() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "--input", input.toString() });
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+    assertEquals(input, fastaToSizesCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_fastaToSizes_InputNotExists() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-i", input.toString() });
+    verify(fastaConverter, never()).toSizes(any());
+  }
+
+  @Test
+  public void run_fastaToSizes_Output() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-o", output.toString() });
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+    assertEquals(output, fastaToSizesCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_fastaToSizes_OutputLongName() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "--output", output.toString() });
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+    assertEquals(output, fastaToSizesCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_fastaToSizes_OutputNotExists() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-o", output.toString() });
+    verify(fastaConverter).toSizes(fastaToSizesCommandCaptor.capture());
+    assertEquals(output, fastaToSizesCommandCaptor.getValue().output);
   }
 
   @Test
   public void run_fastaToSizes_Help() throws Throwable {
     mainService.run(new String[] { FASTA_TO_SIZES_COMMAND, "-h" });
-    verify(fastaConverter, never()).toSizes(any(), any(), any());
+    verify(fastaConverter, never()).toSizes(any());
   }
 
   @Test

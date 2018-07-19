@@ -18,13 +18,14 @@
 package ca.qc.ircm.bedtools;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 import ca.qc.ircm.bedtools.test.config.NonTransactionalTestAnnotations;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,10 +47,9 @@ public class FastaConverterTest {
   private static final int FASTA_LINE_LENGTH = 80;
   private static final int CHROMOSOME_MAX_LENGTH = 1000000;
   private static final String SEPARATOR = "\t";
-  private static final Charset FASTA_CHARSET = StandardCharsets.UTF_8;
   private FastaConverter fastaConverter = new FastaConverter();
   @Mock
-  private FastaToSizesCommand command;
+  private FastaToSizesCommand parameters;
   private Map<String, Integer> sizes;
   private String content;
 
@@ -75,13 +75,13 @@ public class FastaConverterTest {
   @Test
   public void toSizes() throws Throwable {
     generateFasta();
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    when(parameters.reader()).thenReturn(new BufferedReader(new StringReader(content)));
+    StringWriter writer = new StringWriter();
+    when(parameters.writer()).thenReturn(new BufferedWriter(writer));
 
-    fastaConverter.toSizes(new ByteArrayInputStream(content.getBytes(FASTA_CHARSET)), output,
-        command);
+    fastaConverter.toSizes(parameters);
 
-    String outputAsString = output.toString(FASTA_CHARSET.name());
-    String[] lines = outputAsString.split("\n");
+    String[] lines = writer.toString().split("\n");
     for (int i = 0; i < CHROMOSOME_COUNT; i += 1) {
       String[] columns = lines[i].split(SEPARATOR, -1);
       String chromosome = "chr" + (i + 1);

@@ -128,7 +128,7 @@ public class MainService implements CommandLineRunner {
   private void fastaToSize(FastaToSizesCommand fastaToSizesCommand) {
     logger.debug("Fasta 2 sizes");
     try {
-      fastaConverter.toSizes(System.in, System.out, fastaToSizesCommand);
+      fastaConverter.toSizes(fastaToSizesCommand);
     } catch (NumberFormatException e) {
       System.err.println("Could not parse FASTA file");
     } catch (IOException e) {

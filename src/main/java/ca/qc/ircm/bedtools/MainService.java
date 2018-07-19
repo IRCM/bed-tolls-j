@@ -106,7 +106,7 @@ public class MainService implements CommandLineRunner {
   private void setAnnotationsSize(SetAnnotationsSizeCommand setAnnotationSizeCommand) {
     logger.debug("Set annotations size to {}", setAnnotationSizeCommand.size);
     try {
-      bedTransform.setAnnotationsSize(System.in, System.out, setAnnotationSizeCommand);
+      bedTransform.setAnnotationsSize(setAnnotationSizeCommand);
     } catch (NumberFormatException e) {
       System.err.println("Could not parse annotation sizes");
     } catch (IOException e) {

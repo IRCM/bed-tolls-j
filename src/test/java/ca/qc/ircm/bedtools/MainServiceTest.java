@@ -22,7 +22,6 @@ import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAN
 import static ca.qc.ircm.bedtools.SetAnnotationsSizeCommand.SET_ANNOTATIONS_SIZE_COMMAND;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -80,8 +79,7 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -90,8 +88,7 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize_LongName() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "--size", "1" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -100,8 +97,7 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize_UpperCase() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND.toUpperCase(), "-s", "1" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -110,20 +106,19 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize_InvalidSize() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "a" });
-    verify(bedTransform, never()).setAnnotationsSize(any(), any(), any());
+    verify(bedTransform, never()).setAnnotationsSize(any());
   }
 
   @Test
   public void run_SetAnnotationsSize_NegativeSize() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "-2" });
-    verify(bedTransform, never()).setAnnotationsSize(any(), any(), any());
+    verify(bedTransform, never()).setAnnotationsSize(any());
   }
 
   @Test
   public void run_SetAnnotationsSize_ChangeStart() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1", "-c" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(true, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -132,8 +127,7 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize_ChangeStart_LongName() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1", "--changeStart" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(true, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -142,8 +136,7 @@ public class MainServiceTest {
   @Test
   public void run_SetAnnotationsSize_ReverseForNegativeStrand() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1", "-r" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(true, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
@@ -153,17 +146,88 @@ public class MainServiceTest {
   public void run_SetAnnotationsSize_ReverseForNegativeStrand_LongName() throws Throwable {
     mainService.run(
         new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1", "--reverseForNegativeStrand" });
-    verify(bedTransform).setAnnotationsSize(eq(System.in), eq(System.out),
-        setAnnotationsSizeCommandCaptor.capture());
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
     assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
     assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
     assertEquals(true, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
+  public void run_SetAnnotationsSize_Input() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService
+        .run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-i", input.toString(), "-s", "1" });
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
+    assertEquals(input, setAnnotationsSizeCommandCaptor.getValue().input);
+    assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_SetAnnotationsSize_InputLongName() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService
+        .run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "--input", input.toString(), "-s", "1" });
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
+    assertEquals(input, setAnnotationsSizeCommandCaptor.getValue().input);
+    assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_SetAnnotationsSize_InputNotExists() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    mainService
+        .run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-i", input.toString(), "-s", "1" });
+    verify(bedTransform, never()).setAnnotationsSize(any());
+  }
+
+  @Test
+  public void run_SetAnnotationsSize_Output() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService
+        .run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-o", output.toString(), "-s", "1" });
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
+    assertEquals(output, setAnnotationsSizeCommandCaptor.getValue().output);
+    assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_SetAnnotationsSize_OutputLongName() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(
+        new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "--output", output.toString(), "-s", "1" });
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
+    assertEquals(output, setAnnotationsSizeCommandCaptor.getValue().output);
+    assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_SetAnnotationsSize_OutputNotExists() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    mainService
+        .run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-o", output.toString(), "-s", "1" });
+    verify(bedTransform).setAnnotationsSize(setAnnotationsSizeCommandCaptor.capture());
+    assertEquals(output, setAnnotationsSizeCommandCaptor.getValue().output);
+    assertEquals((Integer) 1, setAnnotationsSizeCommandCaptor.getValue().size);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().changeStart);
+    assertEquals(false, setAnnotationsSizeCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
   public void run_SetAnnotationsSize_Help() throws Throwable {
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-h", "-s", "1" });
-    verify(bedTransform, never()).setAnnotationsSize(any(), any(), any());
+    verify(bedTransform, never()).setAnnotationsSize(any());
   }
 
   @Test

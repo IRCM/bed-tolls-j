@@ -18,15 +18,8 @@
 package ca.qc.ircm.bedtools;
 
 import ca.qc.ircm.bedtools.io.ChunkReader;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -45,32 +38,24 @@ public class BedTransform {
   private static final String TRACK_PATTERN = "^track( .*)?$";
   private static final String NEGATIVE_STRAND = "-";
   private static final String COMMENT = "#";
-  private static final Charset BED_CHARSET = StandardCharsets.UTF_8;
 
   /**
    * Sets the size of annotations in BED file.
    *
-   * @param input
-   *          BED to trim
-   * @param output
-   *          output
    * @param parameters
    *          size change parameters
    * @throws IOException
    *           could not read or write BED
    */
-  public void setAnnotationsSize(InputStream input, OutputStream output,
-      SetAnnotationsSizeCommand parameters) throws IOException {
+  public void setAnnotationsSize(SetAnnotationsSizeCommand parameters) throws IOException {
     Pattern browserPattern = Pattern.compile(BROWSER_PATTERN);
     Pattern trackPattern = Pattern.compile(TRACK_PATTERN);
     BiFunction<String, String, String> changeStart =
         (start, end) -> String.valueOf(Long.parseLong(end) - parameters.size);
     BiFunction<String, String, String> changeEnd =
         (start, end) -> String.valueOf(Long.parseLong(start) + parameters.size);
-    try (
-        ChunkReader reader =
-            new ChunkReader(new BufferedReader(new InputStreamReader(input, BED_CHARSET)), 1000000);
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, BED_CHARSET))) {
+    try (ChunkReader reader = new ChunkReader(parameters.reader(), 1000000);
+        BufferedWriter writer = parameters.writer()) {
       List<String> chunk;
       while (!(chunk = reader.readChunk()).isEmpty()) {
         for (String line : chunk) {

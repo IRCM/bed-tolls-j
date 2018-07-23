@@ -17,11 +17,10 @@
 
 package ca.qc.ircm.bedtools;
 
-import ca.qc.ircm.bedtools.io.ChunkReader;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,39 +53,36 @@ public class BedTransform {
         (start, end) -> String.valueOf(Long.parseLong(end) - parameters.size);
     BiFunction<String, String, String> changeEnd =
         (start, end) -> String.valueOf(Long.parseLong(start) + parameters.size);
-    try (ChunkReader reader = new ChunkReader(parameters.reader(), 1000000);
-        BufferedWriter writer = parameters.writer()) {
-      List<String> chunk;
-      while (!(chunk = reader.readChunk()).isEmpty()) {
-        for (String line : chunk) {
-          String[] columns = line.split(COLUMN_SEPARATOR, -1);
-          if (browserPattern.matcher(columns[0]).matches()
-              || trackPattern.matcher(columns[0]).matches() || columns[0].startsWith(COMMENT)) {
-            writer.write(line);
-            writer.write(LINE_SEPARATOR);
-          } else {
-            BiFunction<String, String, String> startFunction = (start, end) -> start;
-            BiFunction<String, String, String> endFunction = (start, end) -> end;
-            if (parameters.reverseForNegativeStrand && columns.length >= 5
-                && columns[5].equals(NEGATIVE_STRAND)) {
-              if (parameters.changeStart) {
-                endFunction = changeEnd;
-              } else {
-                startFunction = changeStart;
-              }
+    try (BufferedReader reader = parameters.reader(); BufferedWriter writer = parameters.writer()) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] columns = line.split(COLUMN_SEPARATOR, -1);
+        if (browserPattern.matcher(columns[0]).matches()
+            || trackPattern.matcher(columns[0]).matches() || columns[0].startsWith(COMMENT)) {
+          writer.write(line);
+          writer.write(LINE_SEPARATOR);
+        } else {
+          BiFunction<String, String, String> startFunction = (start, end) -> start;
+          BiFunction<String, String, String> endFunction = (start, end) -> end;
+          if (parameters.reverseForNegativeStrand && columns.length >= 5
+              && columns[5].equals(NEGATIVE_STRAND)) {
+            if (parameters.changeStart) {
+              endFunction = changeEnd;
             } else {
-              if (parameters.changeStart) {
-                startFunction = changeStart;
-              } else {
-                endFunction = changeEnd;
-              }
+              startFunction = changeStart;
             }
-            columns[1] = startFunction.apply(columns[1], columns[2]);
-            columns[2] = endFunction.apply(columns[1], columns[2]);
-            writer.write(
-                Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));
-            writer.write(LINE_SEPARATOR);
+          } else {
+            if (parameters.changeStart) {
+              startFunction = changeStart;
+            } else {
+              endFunction = changeEnd;
+            }
           }
+          columns[1] = startFunction.apply(columns[1], columns[2]);
+          columns[2] = endFunction.apply(columns[1], columns[2]);
+          writer
+              .write(Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));
+          writer.write(LINE_SEPARATOR);
         }
       }
     }
@@ -103,23 +99,20 @@ public class BedTransform {
   public void moveAnnotations(MoveAnnotationsCommand parameters) throws IOException {
     Pattern browserPattern = Pattern.compile(BROWSER_PATTERN);
     Pattern trackPattern = Pattern.compile(TRACK_PATTERN);
-    try (ChunkReader reader = new ChunkReader(parameters.reader(), 1000000);
-        BufferedWriter writer = parameters.writer()) {
-      List<String> chunk;
-      while (!(chunk = reader.readChunk()).isEmpty()) {
-        for (String line : chunk) {
-          String[] columns = line.split(COLUMN_SEPARATOR, -1);
-          if (browserPattern.matcher(columns[0]).matches()
-              || trackPattern.matcher(columns[0]).matches() || columns[0].startsWith(COMMENT)) {
-            writer.write(line);
-            writer.write(LINE_SEPARATOR);
-          } else {
-            columns[1] = String.valueOf(Long.parseLong(columns[1]) + parameters.distance);
-            columns[2] = String.valueOf(Long.parseLong(columns[2]) + parameters.distance);
-            writer.write(
-                Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));
-            writer.write(LINE_SEPARATOR);
-          }
+    try (BufferedReader reader = parameters.reader(); BufferedWriter writer = parameters.writer()) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] columns = line.split(COLUMN_SEPARATOR, -1);
+        if (browserPattern.matcher(columns[0]).matches()
+            || trackPattern.matcher(columns[0]).matches() || columns[0].startsWith(COMMENT)) {
+          writer.write(line);
+          writer.write(LINE_SEPARATOR);
+        } else {
+          columns[1] = String.valueOf(Long.parseLong(columns[1]) + parameters.distance);
+          columns[2] = String.valueOf(Long.parseLong(columns[2]) + parameters.distance);
+          writer
+              .write(Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));
+          writer.write(LINE_SEPARATOR);
         }
       }
     }

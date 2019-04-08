@@ -330,6 +330,86 @@ public class BedTransformTest {
   }
 
   @Test
+  public void moveAnnotations_ReverseForNegativeStrand() throws Throwable {
+    moveParameters.distance = 3;
+    moveParameters.reverseForNegativeStrand = true;
+    when(moveParameters.reader()).thenReturn(new BufferedReader(new StringReader(content)));
+    StringWriter writer = new StringWriter();
+    when(moveParameters.writer()).thenReturn(new BufferedWriter(writer));
+    bedTransform.moveAnnotations(moveParameters);
+    String[] outputLines = Arrays.asList(writer.toString().split("\n")).stream()
+        .filter(line -> !line.isEmpty()).toArray(count -> new String[count]);
+    String[] lines = this.content.split("\n");
+    assertEquals(lines.length, outputLines.length);
+    for (int i = 0; i < lines.length; i++) {
+      String[] columns = lines[i].split("\t", -1);
+      String[] outputColumns = outputLines[i].split("\t", -1);
+      assertEquals(columns.length, outputColumns.length);
+      assertEquals(columns[0], outputColumns[0]);
+      if (columns[5].equals("+")) {
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[1]) + moveParameters.distance), outputColumns[1]);
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[2]) + moveParameters.distance), outputColumns[2]);
+      } else {
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[1]) - moveParameters.distance), outputColumns[1]);
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[2]) - moveParameters.distance), outputColumns[2]);
+      }
+      for (int j = 3; j < columns.length; j++) {
+        assertEquals(columns[j], outputColumns[j]);
+      }
+    }
+  }
+
+  @Test
+  public void moveAnnotations_ReverseForNegativeStrand_NoStrand() throws Throwable {
+    bedContent();
+    moveParameters.distance = 3;
+    moveParameters.reverseForNegativeStrand = true;
+    when(moveParameters.reader()).thenReturn(new BufferedReader(new StringReader(content)));
+    StringWriter writer = new StringWriter();
+    when(moveParameters.writer()).thenReturn(new BufferedWriter(writer));
+    bedTransform.moveAnnotations(moveParameters);
+    assertMoveContent(writer.toString(), 3);
+  }
+
+  @Test
+  public void moveAnnotations_NegativeDistanceReverseForNegativeStrand() throws Throwable {
+    moveParameters.distance = -3;
+    moveParameters.reverseForNegativeStrand = true;
+    when(moveParameters.reader()).thenReturn(new BufferedReader(new StringReader(content)));
+    StringWriter writer = new StringWriter();
+    when(moveParameters.writer()).thenReturn(new BufferedWriter(writer));
+    bedTransform.moveAnnotations(moveParameters);
+    String[] outputLines = Arrays.asList(writer.toString().split("\n")).stream()
+        .filter(line -> !line.isEmpty()).toArray(count -> new String[count]);
+    String[] lines = this.content.split("\n");
+    assertEquals(lines.length, outputLines.length);
+    for (int i = 0; i < lines.length; i++) {
+      String[] columns = lines[i].split("\t", -1);
+      String[] outputColumns = outputLines[i].split("\t", -1);
+      assertEquals(columns.length, outputColumns.length);
+      assertEquals(columns[0], outputColumns[0]);
+      if (columns[5].equals("+")) {
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[1]) + moveParameters.distance), outputColumns[1]);
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[2]) + moveParameters.distance), outputColumns[2]);
+      } else {
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[1]) - moveParameters.distance), outputColumns[1]);
+        assertEquals(columns[0] + ":" + columns[1],
+            String.valueOf(Long.parseLong(columns[2]) - moveParameters.distance), outputColumns[2]);
+      }
+      for (int j = 3; j < columns.length; j++) {
+        assertEquals(columns[j], outputColumns[j]);
+      }
+    }
+  }
+
+  @Test
   public void moveAnnotations_Comments() throws Throwable {
     String content = "#comment 1\n" + this.content.split("\n")[0] + "\n#comment 2\n" + Arrays
         .asList(this.content.split("\n")).stream().skip(1).collect(Collectors.joining("\n"));

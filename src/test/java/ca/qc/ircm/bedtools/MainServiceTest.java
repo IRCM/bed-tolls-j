@@ -262,6 +262,24 @@ public class MainServiceTest {
     mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "-30" });
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals((Integer) (-30), moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_MoveAnnotations_ReverseForNegativeStrand() throws Throwable {
+    mainService.run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "20", "-r" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(true, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
+  }
+
+  @Test
+  public void run_MoveAnnotations_ReverseForNegativeStrand_LongName() throws Throwable {
+    mainService
+        .run(new String[] { MOVE_ANNOTATIONS_COMMAND, "-d", "20", "--reverseForNegativeStrand" });
+    verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
+    assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(true, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
@@ -272,6 +290,7 @@ public class MainServiceTest {
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals(input, moveAnnotationCommandCaptor.getValue().input);
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
@@ -283,6 +302,7 @@ public class MainServiceTest {
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals(input, moveAnnotationCommandCaptor.getValue().input);
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
@@ -300,6 +320,7 @@ public class MainServiceTest {
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
@@ -311,6 +332,7 @@ public class MainServiceTest {
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test
@@ -320,6 +342,7 @@ public class MainServiceTest {
     verify(bedTransform).moveAnnotations(moveAnnotationCommandCaptor.capture());
     assertEquals(output, moveAnnotationCommandCaptor.getValue().output);
     assertEquals((Integer) 20, moveAnnotationCommandCaptor.getValue().distance);
+    assertEquals(false, moveAnnotationCommandCaptor.getValue().reverseForNegativeStrand);
   }
 
   @Test

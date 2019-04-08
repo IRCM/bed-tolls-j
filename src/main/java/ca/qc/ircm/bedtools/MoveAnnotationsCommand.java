@@ -44,8 +44,16 @@ public class MoveAnnotationsCommand {
 
   @Parameter(names = { "-h", "-help", "--h", "--help" }, description = "Show help", help = true)
   public boolean help = false;
-  @Parameter(names = { "-d", "-distance" }, description = "Distance", required = true)
+  @Parameter(
+      names = { "-d", "-distance" },
+      description = "Distance. Can be negative to move annotations backwards",
+      required = true)
   public Integer distance;
+  @Parameter(
+      names = { "-r", "--reverseForNegativeStrand" },
+      description = "Remove distance for negative strand instead of adding",
+      required = false)
+  public boolean reverseForNegativeStrand;
   @Parameter(
       names = { "-i", "--input" },
       description = "Input file. Defaults to system input for piping",

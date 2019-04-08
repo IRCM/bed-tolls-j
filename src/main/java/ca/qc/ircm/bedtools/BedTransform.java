@@ -108,8 +108,14 @@ public class BedTransform {
           writer.write(line);
           writer.write(LINE_SEPARATOR);
         } else {
-          columns[1] = String.valueOf(Long.parseLong(columns[1]) + parameters.distance);
-          columns[2] = String.valueOf(Long.parseLong(columns[2]) + parameters.distance);
+          if (parameters.reverseForNegativeStrand && columns.length >= 5
+              && columns[5].equals(NEGATIVE_STRAND)) {
+            columns[1] = String.valueOf(Long.parseLong(columns[1]) - parameters.distance);
+            columns[2] = String.valueOf(Long.parseLong(columns[2]) - parameters.distance);
+          } else {
+            columns[1] = String.valueOf(Long.parseLong(columns[1]) + parameters.distance);
+            columns[2] = String.valueOf(Long.parseLong(columns[2]) + parameters.distance);
+          }
           writer
               .write(Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));
           writer.write(LINE_SEPARATOR);

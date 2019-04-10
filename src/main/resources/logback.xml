@@ -22,7 +22,7 @@
   <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
   <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
 
-  <logger name="ca.qc.ircm.htstools" level="DEBUG" />
+  <logger name="ca.qc.ircm.bedtools" level="DEBUG" />
   <logger name="org.springframework" level="INFO"/>
   <root level="INFO">
     <appender-ref ref="FILE" />

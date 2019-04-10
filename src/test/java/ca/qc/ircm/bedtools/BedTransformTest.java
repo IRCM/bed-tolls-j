@@ -18,6 +18,7 @@
 package ca.qc.ircm.bedtools;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import ca.qc.ircm.bedtools.test.config.NonTransactionalTestAnnotations;
@@ -407,6 +408,41 @@ public class BedTransformTest {
         assertEquals(columns[j], outputColumns[j]);
       }
     }
+  }
+
+  @Test
+  public void moveAnnotations_DiscardNegative() throws Throwable {
+    content = "chr1\t0\t10\ttest_negative\t300\t+\n" + content;
+    moveParameters.distance = -3;
+    moveParameters.discardNegative = true;
+    when(moveParameters.reader()).thenReturn(new BufferedReader(new StringReader(content)));
+    StringWriter writer = new StringWriter();
+    when(moveParameters.writer()).thenReturn(new BufferedWriter(writer));
+    bedTransform.moveAnnotations(moveParameters);
+    String[] outputLines = Arrays.asList(writer.toString().split("\n")).stream()
+        .filter(line -> !line.isEmpty()).toArray(count -> new String[count]);
+    String[] lines = this.content.split("\n");
+    assertTrue(lines.length + " > " + outputLines.length, lines.length > outputLines.length);
+    int outputIndex = 0;
+    for (int i = 0; i < lines.length; i++) {
+      String[] columns = lines[i].split("\t", -1);
+      String[] outputColumns = outputLines[outputIndex++].split("\t", -1);
+      if (Integer.valueOf(columns[1]) < -moveParameters.distance
+          || Integer.valueOf(columns[2]) < -moveParameters.distance) {
+        outputIndex--;
+        continue;
+      }
+      assertEquals(columns.length, outputColumns.length);
+      assertEquals(columns[0], outputColumns[0]);
+      assertEquals(columns[0] + ":" + columns[1],
+          String.valueOf(Long.parseLong(columns[1]) + moveParameters.distance), outputColumns[1]);
+      assertEquals(columns[0] + ":" + columns[1],
+          String.valueOf(Long.parseLong(columns[2]) + moveParameters.distance), outputColumns[2]);
+      for (int j = 3; j < columns.length; j++) {
+        assertEquals(columns[j], outputColumns[j]);
+      }
+    }
+    assertEquals(outputIndex, outputLines.length);
   }
 
   @Test

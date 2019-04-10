@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,6 +39,7 @@ public class BedTransform {
   private static final String TRACK_PATTERN = "^track( .*)?$";
   private static final String NEGATIVE_STRAND = "-";
   private static final String COMMENT = "#";
+  private static final Logger logger = LoggerFactory.getLogger(BedTransform.class);
 
   /**
    * Sets the size of annotations in BED file.
@@ -115,6 +118,12 @@ public class BedTransform {
           } else {
             columns[1] = String.valueOf(Long.parseLong(columns[1]) + parameters.distance);
             columns[2] = String.valueOf(Long.parseLong(columns[2]) + parameters.distance);
+          }
+          if (parameters.discardNegative
+              && (columns[1].startsWith("-") || columns[2].startsWith("-"))) {
+            // Discard annotation.
+            logger.warn("Discarding annotation {}", line);
+            continue;
           }
           writer
               .write(Arrays.asList(columns).stream().collect(Collectors.joining(COLUMN_SEPARATOR)));

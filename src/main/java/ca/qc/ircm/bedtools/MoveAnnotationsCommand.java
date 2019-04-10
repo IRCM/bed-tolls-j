@@ -55,6 +55,11 @@ public class MoveAnnotationsCommand {
       required = false)
   public boolean reverseForNegativeStrand;
   @Parameter(
+      names = { "-dn", "--discardNegatives" },
+      description = "Discard annotations that would have a negative coordinate if moved",
+      required = false)
+  public boolean discardNegative;
+  @Parameter(
       names = { "-i", "--input" },
       description = "Input file. Defaults to system input for piping",
       converter = PathConverter.class,

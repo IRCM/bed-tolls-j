@@ -18,9 +18,11 @@
 package ca.qc.ircm.bedtools;
 
 import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
+import static ca.qc.ircm.bedtools.FilterBedpeCommand.FILTER_BEDPE;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
 import static ca.qc.ircm.bedtools.SetAnnotationsSizeCommand.SET_ANNOTATIONS_SIZE_COMMAND;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import ca.qc.ircm.bedtools.test.config.NonTransactionalTestAnnotations;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,34 +39,39 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @NonTransactionalTestAnnotations
 public class MainServiceTest {
+  @Inject
   private MainService mainService;
-  @Mock
+  @MockBean
   private BedTransform bedTransform;
-  @Mock
+  @MockBean
   private FastaConverter fastaConverter;
+  @MockBean
+  private FilterBedpe filterBedpe;
   @Captor
   private ArgumentCaptor<SetAnnotationsSizeCommand> setAnnotationsSizeCommandCaptor;
   @Captor
   private ArgumentCaptor<MoveAnnotationsCommand> moveAnnotationCommandCaptor;
   @Captor
   private ArgumentCaptor<FastaToSizesCommand> fastaToSizesCommandCaptor;
+  @Captor
+  private ArgumentCaptor<FilterBedpeCommand> filterBedpeCommandCaptor;
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Before
   public void beforeTest() {
-    mainService = new MainService(bedTransform, fastaConverter, true);
+    mainService.setRunnerEnabled(true);
   }
 
   @Test
   public void run_RunnerDisabled() {
-    mainService = new MainService(bedTransform, fastaConverter, false);
+    mainService.setRunnerEnabled(false);
     mainService.run(new String[] { SET_ANNOTATIONS_SIZE_COMMAND, "-s", "1" });
     verifyZeroInteractions(bedTransform);
     verifyZeroInteractions(fastaConverter);
@@ -441,9 +449,86 @@ public class MainServiceTest {
   }
 
   @Test
+  public void run_filterBedpe() throws Throwable {
+    mainService.run(new String[] { FILTER_BEDPE });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+  }
+
+  @Test
+  public void run_filterBedpe_MaximumInsertSize() throws Throwable {
+    mainService.run(new String[] { FILTER_BEDPE, "--maximumInsertSize", "200" });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertEquals((Integer) 200, filterBedpeCommandCaptor.getValue().maximumInsertSize);
+  }
+
+  @Test
+  public void run_filterBedpe_Input() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { FILTER_BEDPE, "-i", input.toString() });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+    assertEquals(input, filterBedpeCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_filterBedpe_InputLongName() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { FILTER_BEDPE, "--input", input.toString() });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+    assertEquals(input, filterBedpeCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_filterBedpe_InputNotExists() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    mainService.run(new String[] { FILTER_BEDPE, "-i", input.toString() });
+    verify(filterBedpe, never()).run(any());
+  }
+
+  @Test
+  public void run_filterBedpe_Output() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { FILTER_BEDPE, "-o", output.toString() });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+    assertEquals(output, filterBedpeCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_filterBedpe_OutputLongName() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { FILTER_BEDPE, "--output", output.toString() });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+    assertEquals(output, filterBedpeCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_filterBedpe_OutputNotExists() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    mainService.run(new String[] { FILTER_BEDPE, "-o", output.toString() });
+    verify(filterBedpe).run(filterBedpeCommandCaptor.capture());
+    assertNull(filterBedpeCommandCaptor.getValue().maximumInsertSize);
+    assertEquals(output, filterBedpeCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_filterBedpe_Help() throws Throwable {
+    mainService.run(new String[] { FILTER_BEDPE, "-h" });
+    verify(filterBedpe, never()).run(any());
+  }
+
+  @Test
   public void run_Other() throws Throwable {
     mainService.run(new String[] { "other" });
     verifyZeroInteractions(bedTransform);
     verifyZeroInteractions(fastaConverter);
+    verify(filterBedpe, never()).run(any());
   }
 }

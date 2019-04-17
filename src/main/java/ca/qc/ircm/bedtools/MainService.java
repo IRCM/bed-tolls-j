@@ -18,6 +18,7 @@
 package ca.qc.ircm.bedtools;
 
 import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
+import static ca.qc.ircm.bedtools.FilterBedpeCommand.FILTER_BEDPE;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
 import static ca.qc.ircm.bedtools.SetAnnotationsSizeCommand.SET_ANNOTATIONS_SIZE_COMMAND;
 
@@ -41,17 +42,12 @@ public class MainService implements CommandLineRunner {
   private BedTransform bedTransform;
   @Inject
   private FastaConverter fastaConverter;
+  @Inject
+  private FilterBedpe filterBedpe;
   @Value("${spring.runner.enabled}")
   private boolean runnerEnabled;
 
   protected MainService() {
-  }
-
-  protected MainService(BedTransform bedTransform, FastaConverter fastaConverter,
-      boolean runnerEnabled) {
-    this.bedTransform = bedTransform;
-    this.fastaConverter = fastaConverter;
-    this.runnerEnabled = runnerEnabled;
   }
 
   /**
@@ -70,9 +66,10 @@ public class MainService implements CommandLineRunner {
     SetAnnotationsSizeCommand setAnnotationSizeCommand = new SetAnnotationsSizeCommand();
     MoveAnnotationsCommand moveAnnotationsCommand = new MoveAnnotationsCommand();
     FastaToSizesCommand fastaToSizesCommand = new FastaToSizesCommand();
-    JCommander command =
-        JCommander.newBuilder().addObject(mainCommand).addCommand(setAnnotationSizeCommand)
-            .addCommand(moveAnnotationsCommand).addCommand(fastaToSizesCommand).build();
+    FilterBedpeCommand filterBedpeCommand = new FilterBedpeCommand();
+    JCommander command = JCommander.newBuilder().addObject(mainCommand)
+        .addCommand(setAnnotationSizeCommand).addCommand(moveAnnotationsCommand)
+        .addCommand(fastaToSizesCommand).addCommand(filterBedpeCommand).build();
     command.setCaseSensitiveOptions(false);
     try {
       command.parse(args);
@@ -96,7 +93,17 @@ public class MainService implements CommandLineRunner {
         } else {
           fastaToSize(fastaToSizesCommand);
         }
+      } else if (command.getParsedCommand().equals(FILTER_BEDPE)) {
+        if (filterBedpeCommand.help) {
+          command.usage(FILTER_BEDPE);
+        } else {
+          filterBedpe.run(filterBedpeCommand);
+        }
       }
+    } catch (NumberFormatException e) {
+      System.err.println(e.getMessage());
+    } catch (IOException e) {
+      System.err.println("Could not read input or write to output");
     } catch (ParameterException e) {
       System.err.println(e.getMessage() + "\n");
       command.usage();
@@ -134,5 +141,9 @@ public class MainService implements CommandLineRunner {
     } catch (IOException e) {
       System.err.println("Could not read input or write to output");
     }
+  }
+
+  void setRunnerEnabled(boolean runnerEnabled) {
+    this.runnerEnabled = runnerEnabled;
   }
 }

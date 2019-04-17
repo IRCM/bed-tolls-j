@@ -17,6 +17,7 @@
 
 package ca.qc.ircm.bedtools;
 
+import static ca.qc.ircm.bedtools.BedpeToBedCommand.BEDPE_TO_BED;
 import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
 import static ca.qc.ircm.bedtools.FilterBedpeCommand.FILTER_BEDPE;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
@@ -53,6 +54,8 @@ public class MainServiceTest {
   private FastaConverter fastaConverter;
   @MockBean
   private FilterBedpe filterBedpe;
+  @MockBean
+  private BedpeToBed bedpeToBed;
   @Captor
   private ArgumentCaptor<SetAnnotationsSizeCommand> setAnnotationsSizeCommandCaptor;
   @Captor
@@ -61,6 +64,8 @@ public class MainServiceTest {
   private ArgumentCaptor<FastaToSizesCommand> fastaToSizesCommandCaptor;
   @Captor
   private ArgumentCaptor<FilterBedpeCommand> filterBedpeCommandCaptor;
+  @Captor
+  private ArgumentCaptor<BedpeToBedCommand> bedpeToBedCommandCaptor;
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -525,10 +530,74 @@ public class MainServiceTest {
   }
 
   @Test
+  public void run_BedpeToBed() throws Throwable {
+    mainService.run(new String[] { BEDPE_TO_BED });
+    verify(bedpeToBed).run(any());
+  }
+
+  @Test
+  public void run_BedpeToBed_Input() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { BEDPE_TO_BED, "-i", input.toString() });
+    verify(bedpeToBed).run(bedpeToBedCommandCaptor.capture());
+    assertEquals(input, bedpeToBedCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_BedpeToBed_InputLongName() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    Files.createFile(input);
+    mainService.run(new String[] { BEDPE_TO_BED, "--input", input.toString() });
+    verify(bedpeToBed).run(bedpeToBedCommandCaptor.capture());
+    assertEquals(input, bedpeToBedCommandCaptor.getValue().input);
+  }
+
+  @Test
+  public void run_BedpeToBed_InputNotExists() throws Throwable {
+    Path input = temporaryFolder.getRoot().toPath().resolve("input.txt");
+    mainService.run(new String[] { BEDPE_TO_BED, "-i", input.toString() });
+    verify(bedpeToBed, never()).run(any());
+  }
+
+  @Test
+  public void run_BedpeToBed_Output() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { BEDPE_TO_BED, "-o", output.toString() });
+    verify(bedpeToBed).run(bedpeToBedCommandCaptor.capture());
+    assertEquals(output, bedpeToBedCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_BedpeToBed_OutputLongName() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    Files.createFile(output);
+    mainService.run(new String[] { BEDPE_TO_BED, "--output", output.toString() });
+    verify(bedpeToBed).run(bedpeToBedCommandCaptor.capture());
+    assertEquals(output, bedpeToBedCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_BedpeToBed_OutputNotExists() throws Throwable {
+    Path output = temporaryFolder.getRoot().toPath().resolve("output.txt");
+    mainService.run(new String[] { BEDPE_TO_BED, "-o", output.toString() });
+    verify(bedpeToBed).run(bedpeToBedCommandCaptor.capture());
+    assertEquals(output, bedpeToBedCommandCaptor.getValue().output);
+  }
+
+  @Test
+  public void run_BedpeToBed_Help() throws Throwable {
+    mainService.run(new String[] { BEDPE_TO_BED, "-h" });
+    verify(bedpeToBed, never()).run(any());
+  }
+
+  @Test
   public void run_Other() throws Throwable {
     mainService.run(new String[] { "other" });
     verifyZeroInteractions(bedTransform);
     verifyZeroInteractions(fastaConverter);
-    verify(filterBedpe, never()).run(any());
+    verifyZeroInteractions(filterBedpe);
+    verifyZeroInteractions(bedpeToBed);
   }
 }

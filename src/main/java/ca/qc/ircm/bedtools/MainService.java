@@ -17,6 +17,7 @@
 
 package ca.qc.ircm.bedtools;
 
+import static ca.qc.ircm.bedtools.BedpeToBedCommand.BEDPE_TO_BED;
 import static ca.qc.ircm.bedtools.FastaToSizesCommand.FASTA_TO_SIZES_COMMAND;
 import static ca.qc.ircm.bedtools.FilterBedpeCommand.FILTER_BEDPE;
 import static ca.qc.ircm.bedtools.MoveAnnotationsCommand.MOVE_ANNOTATIONS_COMMAND;
@@ -44,6 +45,8 @@ public class MainService implements CommandLineRunner {
   private FastaConverter fastaConverter;
   @Inject
   private FilterBedpe filterBedpe;
+  @Inject
+  private BedpeToBed bedpeToBed;
   @Value("${spring.runner.enabled}")
   private boolean runnerEnabled;
 
@@ -67,9 +70,11 @@ public class MainService implements CommandLineRunner {
     MoveAnnotationsCommand moveAnnotationsCommand = new MoveAnnotationsCommand();
     FastaToSizesCommand fastaToSizesCommand = new FastaToSizesCommand();
     FilterBedpeCommand filterBedpeCommand = new FilterBedpeCommand();
-    JCommander command = JCommander.newBuilder().addObject(mainCommand)
-        .addCommand(setAnnotationSizeCommand).addCommand(moveAnnotationsCommand)
-        .addCommand(fastaToSizesCommand).addCommand(filterBedpeCommand).build();
+    BedpeToBedCommand bedpeToBedCommand = new BedpeToBedCommand();
+    JCommander command =
+        JCommander.newBuilder().addObject(mainCommand).addCommand(setAnnotationSizeCommand)
+            .addCommand(moveAnnotationsCommand).addCommand(fastaToSizesCommand)
+            .addCommand(filterBedpeCommand).addCommand(bedpeToBedCommand).build();
     command.setCaseSensitiveOptions(false);
     try {
       command.parse(args);
@@ -98,6 +103,12 @@ public class MainService implements CommandLineRunner {
           command.usage(FILTER_BEDPE);
         } else {
           filterBedpe.run(filterBedpeCommand);
+        }
+      } else if (command.getParsedCommand().equals(BEDPE_TO_BED)) {
+        if (bedpeToBedCommand.help) {
+          command.usage(BEDPE_TO_BED);
+        } else {
+          bedpeToBed.run(bedpeToBedCommand);
         }
       }
     } catch (NumberFormatException e) {
